@@ -1,35 +1,25 @@
 ---
 title: "Tidy Analysis of Genomic Data"
 author: "Michael Love"
-date: '2022-05-06'
-output: ioslides_presentation
+date: "2022-05-06"
+output: beamer_presentation
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r echo=FALSE}
+suppressPackageStartupMessages(library(tidyverse))
 ```
 
-## R Markdown
+# Example data
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+![](non-tidy.png)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+# First slide
 
-## Slide with Bullets
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
+```{r include=FALSE}
+dat <- read_delim("data.tsv")
+dat$value <- runif(nrow(dat))
 ```
 
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
+```{r}
+head(dat)
 ```
-
