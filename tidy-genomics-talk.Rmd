@@ -20,6 +20,7 @@ One row per observation, one column per variable
 ```{r include=FALSE}
 dat <- read_delim("data.tsv")
 dat$value <- runif(nrow(dat))
+dat$drug <- factor(dat$drug)
 ```
 
 ```{r}
@@ -56,7 +57,7 @@ In the R package *dplyr*, we have operations:
 
 # Summarize after grouping
 
-A useful paradigm is to *group* data by one variable and *summarize*:
+A useful paradigm is to *group* data and then *summarize*:
 
 ```{r eval=FALSE}
 dat %>%
@@ -71,13 +72,103 @@ dat %>%
 dat %>%
   group_by(drug, genotype) %>%
   filter(!outlier) %>%
-  summarize(mu_hat = mean(value))
+  summarize(mu_est = mean(value))
 ```
 
-# More stuff
+# Piping into plots
 
-genomic data already tidy, show narrow peak
-import narrow peak
-show some example overlaps
-bootranges and matchranges
+```{r fig.dim=c(5,2)}
+dat %>%
+  mutate(newvalue = value^2) %>%
+  ggplot(aes(genotype, newvalue)) + 
+  geom_boxplot() + 
+  facet_wrap(~drug)
+```
 
+# Genomic range data is already tidy
+
+![](narrowpeak.png)
+
+# Why the "tidy analysis" paradigm for genomic ranges?
+
+* Many comp students are already familiar with dplyr/ggplot2
+* Less variable names, e.g. `dat3 <- dat2[dat2$signal > x]`
+* Encourages exploratory analysis
+* It's not necessarily *less code*, but aims for readable code
+* Generalizes from simple to complex cases
+
+# Bringing range data into R
+
+```{r echo=FALSE}
+suppressPackageStartupMessages(library(plyranges))
+```
+
+```{r}
+library(plyranges)
+pks <- read_narrowpeaks("ENCFF231UNV.bed.gz")
+```
+
+# Bringing range data into R
+
+\tiny
+```{r}
+pks
+```
+\normalsize
+
+# Example operations with plyranges
+
+```{r eval=FALSE}
+pks %>%
+  filter(seqnames %in% paste0("chr",1:3),
+         qValue > 2) %>%
+  mutate(width_bin = cut(width, 
+                         breaks=c(0,300,500,5000), 
+                         include.lowest=TRUE)) %>%
+  group_by(width_bin, seqnames) %>%
+  summarize(freq = n()) %>%
+  as_tibble() %>%
+  ggplot(aes(width_bin, freq)) + 
+  geom_col() + 
+  facet_wrap(~seqnames)
+```
+
+# Example operations with plyranges
+
+```{r echo=FALSE, fig.dim=c(7,2.5)}
+pks %>%
+  filter(seqnames %in% paste0("chr",1:3),
+         qValue > 2) %>%
+  mutate(width_bin = cut(width, 
+                         breaks=c(0,300,500,5000), 
+                         include.lowest=TRUE)) %>%
+  group_by(width_bin, seqnames) %>%
+  summarize(freq = n()) %>%
+  as_tibble() %>%
+  ggplot(aes(width_bin, freq)) + 
+  geom_col() + 
+  facet_wrap(~seqnames)
+```
+
+# OK, that's basically dplyr though
+
+# Other
+
+* show some example overlaps
+* show bootranges
+* mention matchranges
+* correlation trick and tidySE
+
+# Why the "tidy analysis" paradigm for genomic ranges?
+
+* Encourages exploratory analysis
+* It's not necessarily *less code*, but aims for readable code
+* Generalizes from simple to complex cases
+
+# Reading
+
+* Lee, S., Cook, D. & Lawrence, M. plyranges: a grammar of genomic data transformation. Genome Biology 20, 4 (2019). <https://doi.org/10.1186/s13059-018-1597-8>
+* Lee S, Lawrence M and Love MI. Fluent genomics with plyranges and tximeta. F1000Research 2020, 9:109 <https://doi.org/10.12688/f1000research.22259.1>
+* Mangiola, S., Molania, R., Dong, R. et al. tidybulk: an R tidy framework for modular transcriptomic data analysis. Genome Biology 22, 42 (2021). <https://doi.org/10.1186/s13059-020-02233-7>
+* bootRanges, matchRanges, see: <https://nullranges.github.io/nullranges>
+* tidySummarizedExperiment, see: <https://stemangiola.github.io/tidySummarizedExperiment>
