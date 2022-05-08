@@ -94,7 +94,8 @@ dat %>%
 
 * Many comp students are already familiar with dplyr/ggplot2
 * Less variable names, e.g. `dat3 <- dat2[dat2$signal > x]`
-* Encourages exploratory analysis
+* Encourages exploratory analysis, compare to "all-in-one" functions
+* Encourages efficiency: less calls to underlying C code
 * It's not necessarily *less code*, but aims for readable code
 * Generalizes from simple to complex cases
 
@@ -203,11 +204,25 @@ pks %>%
 ```
 \normalsize
 
-# Some short examples
+# Computing statistics
+
+fix this...
+
+```{r eval=FALSE}
+gr %>%
+  group_by_overlaps(pks) %>%
+  as_tibble() %>%
+  select(query, score, qValue) %>%
+  nest(data=-query) %>%
+  mutate(model = map_dbl(data, ~lm(.x$score ~ .x$qValue)))
+```
+
+# Some pointers
 
 * TSS: `anchor_5p() %>% mutate(width=1)`
 * Flanking sequence: `flank_left` or `flank_upstream`
 * Flatten/break up ranges: `reduce_ranges`, `disjoin_ranges`
+* Concatenating ranges: `bind_ranges`
 * Overlaps are handled often with "joins": `join_overlap_*`, 
   `join_nearest`, etc.
 
@@ -220,7 +235,8 @@ pks %>%
 
 # Summary
 
-* Encourages exploratory analysis
+* Encourages exploratory analysis, compare to "all-in-one" functions
+* Encourages efficiency: less calls to underlying C code
 * It's not necessarily *less code*, but aims for readable code
 * Generalizes from simple to complex cases
 
