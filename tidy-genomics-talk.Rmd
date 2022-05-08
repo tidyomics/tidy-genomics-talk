@@ -150,7 +150,21 @@ pks %>%
   facet_wrap(~seqnames)
 ```
 
-# OK, that's basically dplyr though
+# Making use of range information
+
+Grouping by genomic overlaps (with `maxgap` and/or `minoverlap`). 
+
+Suppose a query set of ranges, `gr`.
+
+```{r echo=FALSE}
+gr <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6))
+```
+
+```{r}
+gr %>%
+  group_by_overlaps(pks) %>%
+  summarize(mu=mean(score), sd=sd(score), n=n())
+```
 
 # Other
 
@@ -169,6 +183,7 @@ pks %>%
 
 * Lee, S., Cook, D. & Lawrence, M. plyranges: a grammar of genomic data transformation. Genome Biology 20, 4 (2019). <https://doi.org/10.1186/s13059-018-1597-8>
 * Lee S, Lawrence M and Love MI. Fluent genomics with plyranges and tximeta. F1000Research 2020, 9:109 <https://doi.org/10.12688/f1000research.22259.1>
+* Tidy Ranges Tutorial <https://nullranges.github.io/tidy-ranges-tutorial>
 * Mangiola, S., Molania, R., Dong, R. et al. tidybulk: an R tidy framework for modular transcriptomic data analysis. Genome Biology 22, 42 (2021). <https://doi.org/10.1186/s13059-020-02233-7>
 * bootRanges, matchRanges, see: <https://nullranges.github.io/nullranges>
 * tidySummarizedExperiment, see: <https://stemangiola.github.io/tidySummarizedExperiment>
