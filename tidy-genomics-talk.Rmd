@@ -204,17 +204,32 @@ pks %>%
 ```
 \normalsize
 
-# Computing statistics
-
-fix this...
+# Going further: computing statistics
 
 ```{r eval=FALSE}
+library(broom)
 gr %>%
   group_by_overlaps(pks) %>%
   as_tibble() %>%
   select(query, score, qValue) %>%
-  nest(data=-query) %>%
-  mutate(model = map_dbl(data, ~lm(.x$score ~ .x$qValue)))
+  nest(data = -query) %>%
+  mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
+         fitted = map(fit, ~.x$fitted)) %>%
+  unnest(c(data, fitted))
+```
+
+# Going further: computing statistics
+
+```{r echo=FALSE}
+library(broom)
+gr %>%
+  group_by_overlaps(pks) %>%
+  as_tibble() %>%
+  select(query, score, qValue) %>%
+  nest(data = -query) %>%
+  mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
+         fitted = map(fit, ~.x$fitted)) %>%
+  unnest(c(data, fitted))
 ```
 
 # Some pointers
