@@ -1,19 +1,20 @@
 ---
 title: "Tidy Analysis of Genomic Data"
 author: "Michael Love"
-date: "2022-05-06"
+date: "2022-05-11"
 output: beamer_presentation
+urlcolor: blue
 ---
 
 ```{r echo=FALSE}
 suppressPackageStartupMessages(library(tidyverse))
 ```
 
-# Example data
+# Data organization depends on purpose
 
 ![](non-tidy.png)
 
-# Tidy data
+# "Tidy data" is organized for programming
 
 One row per observation, one column per variable
 
@@ -41,20 +42,22 @@ command | command | command > output.txt
 
 \vspace{2em}
 
-In R we use `%>%` instead of `|` to chain operations.
+In R we use `'%>%'` instead of `'|'` to chain operations.
 
 # Verb-based operations
 
-In the R package *dplyr*, we have operations:
+In the R package *dplyr*:
 
-* `mutate()` adds new variables that are functions of existing variables
+\small
+* `mutate()` adds new variables that are functions of existing variables.
 * `select()` picks variables based on their names.
 * `filter()` picks cases based on their values.
 * `slice()` picks cases based on their position.
-* `summarise()` reduces multiple values down to a single summary.
-* `arrange()` changes the ordering of the rows
+* `summarize()` reduces multiple values down to a single summary.
+* `arrange()` changes the ordering of the rows.
 
 <https://dplyr.tidyverse.org/>
+\normalsize
 
 # Summarize after grouping
 
@@ -86,17 +89,20 @@ dat %>%
   facet_wrap(~drug)
 ```
 
-# Genomic range data is already tidy
+# Lots of genomic range data is already tidy
 
 ![](narrowpeak.png)
 
-# Why the "tidy analysis" paradigm for genomic ranges?
+# Practical considerations
 
 * Many comp students are already familiar with dplyr/ggplot2
 * Less variable names, e.g. `dat3 <- dat2[dat2$signal > x]`
-* Encourages exploratory analysis, compare to "all-in-one" functions
-* Encourages efficiency: less calls to underlying C code
 * It's not necessarily *less code*, but aims for readable code
+
+# Why consider "tidy analysis" paradigm for genomics?
+
+* Encourages exploratory analysis, vs. "all-in-one" functions
+* Encourages efficiency: less calls to underlying C code
 * Generalizes from simple to complex cases
 
 # Bringing range data into R
@@ -164,9 +170,9 @@ pks %>%
 
 # Making use of range information
 
-Grouping by genomic overlaps (with `maxgap` and/or `minoverlap`). 
+Grouping by genomic overlaps (with `maxgap` and/or `minoverlap`)
 
-Suppose a query set of ranges, `gr`.
+Suppose a query set of ranges, `gr`:
 
 ```{r echo=FALSE}
 gr <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6), 
@@ -204,7 +210,15 @@ pks %>%
 ```
 \normalsize
 
-# Going further: computing statistics
+# More complex cases
+
+* The most common cases are computing summaries, overlaps
+* More complex computations are possible, e.g.:
+    - For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu)
+    - For regulatory variants falling in ATAC peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
+    - For looped and unlooped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
+
+# Going further: extracting info from fitted models
 
 ```{r eval=FALSE}
 library(broom)
@@ -218,7 +232,7 @@ gr %>%
   unnest(c(data, fitted))
 ```
 
-# Going further: computing statistics
+# Going further: extracting info from fitted models
 
 ```{r echo=FALSE}
 library(broom)
@@ -239,20 +253,22 @@ gr %>%
 * Flatten/break up ranges: `reduce_ranges`, `disjoin_ranges`
 * Concatenating ranges: `bind_ranges`
 * Overlaps are handled often with "joins": `join_overlap_*`, 
-  `join_nearest`, etc.
+  `join_nearest`, `join_nearest_downstream`, etc.
 
 # More tutorials online
 
-* *plyranges* vignettes
+* *plyranges* vignettes (on Bioc and GitHub)
 * Enrichment of peaks and genes: "Fluent Genomics" workflow
+* *nullranges* vignettes (on Bioc and GitHub), which provides block bootstrap and matching functionality that pairs easily with *plyranges*
 * Other examples, incl. bootstrap: "Tidy Ranges Tutorial"
-* BioC2022: Wancen Mu & Eric Davis present *nullranges* workshop
+* BioC2022: Wancen Mu & Eric Davis *nullranges* workshop
 
-# Summary
+# Tidy analysis for genomic data
 
-* Encourages exploratory analysis, compare to "all-in-one" functions
+![](dplyr.png){width=23%} ![](GenomicRanges.png){width=23%} ![](plyranges.png){width=23%} ![](nullranges.png){width=23%}
+
+* Encourages exploratory analysis, vs. "all-in-one" functions
 * Encourages efficiency: less calls to underlying C code
-* It's not necessarily *less code*, but aims for readable code
 * Generalizes from simple to complex cases
 
 # Reading
