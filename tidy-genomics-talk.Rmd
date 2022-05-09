@@ -95,15 +95,26 @@ dat %>%
 
 # Practical considerations
 
+\large
+
 * Many comp students are already familiar with dplyr/ggplot2
-* Less variable names, e.g. `dat3 <- dat2[dat2$signal > x]`
+* Can help to reduce hard-to-read variable names, e.g.:
+  ```{r eval=FALSE}
+  dat3 <- dat2[dat2$signal > x]
+  ```
 * It's not necessarily *less code*, but aims for readable code
 
+\normalsize
+
 # Why consider "tidy analysis" paradigm for genomics?
+
+\large
 
 * Encourages exploratory analysis, vs. "all-in-one" functions
 * Encourages efficiency: less calls to underlying C code
 * Generalizes from simple to complex cases
+
+\normalsize
 
 # Bringing range data into R
 
@@ -263,13 +274,23 @@ gr %>%
 * Other examples, incl. bootstrap: "Tidy Ranges Tutorial"
 * BioC2022: Wancen Mu & Eric Davis *nullranges* workshop
 
-# Tidy analysis for genomic data
+# Summary: tidy analysis for genomic data
 
-![](dplyr.png){width=23%} ![](GenomicRanges.png){width=23%} ![](plyranges.png){width=23%} ![](nullranges.png){width=23%}
+```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="25%"}
+knitr::include_graphics(c("dplyr.png","GenomicRanges.png"))
+```
+
+```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="25%"}
+knitr::include_graphics(c("plyranges.png","nullranges.png"))
+```
+
+\large
 
 * Encourages exploratory analysis, vs. "all-in-one" functions
 * Encourages efficiency: less calls to underlying C code
 * Generalizes from simple to complex cases
+
+\normalsize
 
 # Reading
 
