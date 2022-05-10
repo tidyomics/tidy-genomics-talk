@@ -65,8 +65,8 @@ A useful paradigm is to *group* data and then *summarize*:
 
 ```{r eval=FALSE}
 dat %>%
-  group_by(drug, genotype) %>%
   filter(!outlier) %>%
+  group_by(drug, genotype) %>%
   summarize(mu_hat = mean(value))
 ```
 
@@ -74,8 +74,8 @@ dat %>%
 
 ```{r echo=FALSE, message=FALSE}
 dat %>%
-  group_by(drug, genotype) %>%
   filter(!outlier) %>%
+  group_by(drug, genotype) %>%
   summarize(mu_est = mean(value))
 ```
 
@@ -89,16 +89,16 @@ dat %>%
   facet_wrap(~drug)
 ```
 
-# Lots of genomic range data is already tidy
+# Genomic range data is often already tidy
 
 ![](narrowpeak.png)
 
 # Practical considerations
 
-\large
+\Large
 
-* Many comp students are already familiar with dplyr/ggplot2
-* Can help to reduce hard-to-read variable names, e.g.:
+* Many comp students are already familiar with dplyr/ggplot2, so helps with onboarding
+* Piping can help to avoid hard-to-read variable names, e.g.:
   ```{r eval=FALSE}
   dat3 <- dat2[dat2$signal > x]
   ```
@@ -108,15 +108,19 @@ dat %>%
 
 # Why consider "tidy analysis" paradigm for genomics?
 
-\large
+\Large
 
-* Encourages exploratory analysis, vs. "all-in-one" functions
-* Encourages efficiency: less calls to underlying C code
+* Encourages exploratory analysis, vs. "all-in-one" functions for performing summarization or enrichment analysis
+* Encourages efficiency: fewer calls to C code
 * Generalizes from simple to complex cases
 
 \normalsize
 
 # Bringing range data into R
+
+ENCODE mouse embryonic fibroblast, H3k4me1:
+
+\vspace{2em}
 
 ```{r echo=FALSE}
 suppressPackageStartupMessages(library(plyranges))
@@ -181,9 +185,10 @@ pks %>%
 
 # Making use of range information
 
-Grouping by genomic overlaps (with `maxgap` and/or `minoverlap`)
-
-Suppose a query set of ranges, `gr`:
+* Suppose a query set of ranges, `gr` (here three ranges).
+* The following chunk groups `pks` by the query ranges. 
+* Optional specification of `maxgap` and/or `minoverlap`. 
+* Range information for the `pks` is lost though.
 
 ```{r echo=FALSE}
 gr <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6), 
@@ -211,6 +216,9 @@ gr %>%
 
 # Keeping the ranges of the representative
 
+* Join-by-overlaps is a more flexible paradigm.
+* "Left" and "inner" joins differ by how missing IDs in the first table are handled.
+
 \footnotesize
 ```{r}
 pks %>%
@@ -228,8 +236,12 @@ pks %>%
     - For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu)
     - For regulatory variants falling in ATAC peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
     - For looped and unlooped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
+    - For DHS in a region of interest with particular genomic characteristics, compare overlap with functional annotation within and in comparison to matched regions from elsewhere in genome (Lexi Bounds, Pat Sullivan, *et al.*)
 
 # Going further: extracting info from fitted models
+
+* Nest $\rightarrow$ map $\rightarrow$ unnest
+* Allows model fitting within data groups, see also `glance` and `augment`
 
 ```{r eval=FALSE}
 library(broom)
@@ -260,11 +272,12 @@ gr %>%
 # Some pointers
 
 * TSS: `anchor_5p() %>% mutate(width=1)`
-* Flanking sequence: `flank_left` or `flank_upstream`
+* Overlaps can specify `*_directed` or `*_within`
 * Flatten/break up ranges: `reduce_ranges`, `disjoin_ranges`
 * Concatenating ranges: `bind_ranges`
 * Overlaps are handled often with "joins": `join_overlap_*`, 
   `join_nearest`, `join_nearest_downstream`, etc.
+* Load *plyranges* last to avoid name masking
 
 # More tutorials online
 
@@ -287,7 +300,7 @@ knitr::include_graphics(c("plyranges.png","nullranges.png"))
 \large
 
 * Encourages exploratory analysis, vs. "all-in-one" functions
-* Encourages efficiency: less calls to underlying C code
+* Encourages efficiency: fewer calls to C code
 * Generalizes from simple to complex cases
 
 \normalsize
