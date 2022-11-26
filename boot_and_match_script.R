@@ -18,14 +18,16 @@ makeClusterRanges <- function(chrom, rng, n, lambda, g) {
   })
   gr <- do.call(rbind, out) %>%
     as_granges() %>%
-    sort()
+    sort() %>%
+    mutate(id = seq_along(.))
   seqlengths(gr) <- seqlengths(g)["chr4"]
   gr
 }
 
-shuffle <- function(gr, rng) {
+shuffle <- function(gr, rng, width=1e4) {
   new_pos <- round(runif(length(gr), rng[1], rng[2]))
-  data.frame(seqnames=seqnames(gr), start=new_pos, end=new_pos + 1e4, score=gr$score) %>%
+  data.frame(seqnames=seqnames(gr), start=new_pos, end=new_pos + width,
+             score=gr$score, id=gr$id) %>%
     as_granges()
 }
 

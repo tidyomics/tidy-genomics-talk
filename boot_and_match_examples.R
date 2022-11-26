@@ -1,3 +1,7 @@
+##########################################
+## visualizing genes and other features ##
+##########################################
+
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
@@ -12,12 +16,12 @@ g <- g %>%
 # for visualizing, restrict to a range of chr4
 chrom <- "chr4"
 rng <- c(98.8e6, 99.8e6) # where we will zoom into, 1 Mb
-rng_big <- c(95e6, 100e6) # where features live, 5 Mb
+rng_big <- c(90e6, 110e6) # where features live, 20 Mb
 
 # filtering the genes:
-r <- data.frame(seqnames=chrom,start=rng[1]+1,end=rng[2]) %>%
+r <- data.frame(seqnames=chrom, start=rng[1]+1, end=rng[2]) %>%
   as_granges()
-g %>%
+g <- g %>%
   filter_by_overlaps(r) %>%
   sort() %>%
   arrange(strand)
@@ -28,7 +32,7 @@ suppressPackageStartupMessages(library(plotgardener))
 plotSomeGenes(chrom, rng, showGuides=FALSE)
 
 # make n features in clumps of ~lambda
-gr <- makeClusterRanges(chrom, rng_big, n=150, lambda=5, g)
+gr <- makeClusterRanges(chrom, rng_big, n=300, lambda=5, g)
 
 # define some plotting parameters 
 pal <- colorRampPalette(c("dodgerblue2", "firebrick2"))
@@ -59,3 +63,66 @@ boot <- bootRanges(gr, blockLength=1e5, R=1,
 # plot bootstrapped ranges
 plotRanges(boot, params=p, y=0)
 plotText("boot", params=textp, y=1)
+
+##############################
+## bootstrapping statistics ##
+##############################
+
+g %>%
+  mutate(n_overlaps = count_overlaps(., gr))
+
+g %>% join_overlap_left(gr) %>%
+  group_by(symbol) %>%
+  summarize(n_overlaps = sum(!is.na(id)))
+
+g %>% join_overlap_left(gr) %>%
+  group_by(symbol) %>%
+  summarize(ave_score = mean(score))
+
+library(tibble)
+library(ggplot2)
+g %>% join_overlap_left(gr) %>%
+  filter(!is.na(id)) %>%
+  mutate(type = "original") %>%
+  group_by(symbol, type) %>%
+  summarize(ave_score = mean(score)) %>%
+  as_tibble() %>%
+  ggplot(aes(type, ave_score)) +
+  geom_violin() +
+  geom_jitter()
+
+niter <- 50
+sim_list <- replicate(niter, makeClusterRanges(chrom, rng_big, n=300, lambda=5, g))
+sim_long <- bind_ranges(sim_list, .id="iter")
+
+g %>% join_overlap_left(sim_long) %>%
+  filter(!is.na(id)) %>%
+  mutate(type = "original") %>%
+  group_by(symbol, iter, type) %>%
+  summarize(ave_score = mean(score)) %>%
+  as_tibble() %>%
+  ggplot(aes(type, ave_score)) +
+  geom_violin() +
+  geom_jitter()
+
+shuf_list <- replicate(niter, shuffle(gr, rng))
+shuf_long <- bind_ranges(shuf_list, .id="iter")
+
+boot_long <- bootRanges(gr, blockLength=1e5, R=niter,
+                   seg=seg, proportionLength=FALSE)
+
+lvls <- c("sim","shuffle","boot")
+all <- bind_ranges(sim=sim_long, shuffle=shuf_long,
+                   boot=boot_long, .id="type") %>%
+  mutate(type = factor(type, levels=lvls))
+
+head(table(all$iter, all$type))
+
+g %>% join_overlap_left(all) %>%
+  filter(!is.na(id)) %>%
+  group_by(symbol, iter, type) %>%
+  summarize(ave_score = mean(score)) %>%
+  as_tibble() %>%
+  ggplot(aes(type, ave_score)) +
+  geom_violin() +
+  geom_jitter(width=.25, alpha=.15)
