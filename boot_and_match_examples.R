@@ -3,6 +3,7 @@ library(org.Hs.eg.db)
 txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
 g <- genes(txdb)
 
+# add symbols to genes
 suppressPackageStartupMessages(library(plyranges))
 g <- g %>%
   mutate(symbol = mapIds(org.Hs.eg.db, gene_id,
@@ -23,24 +24,38 @@ g %>%
 
 source("boot_and_match_script.R")
 
-library(plotgardener)
-plotSomeGenes()
+suppressPackageStartupMessages(library(plotgardener))
+plotSomeGenes(chrom, rng, showGuides=FALSE)
 
-gr <- makeClusterRanges(chrom, rng_big, 150, 5)
-seqlengths(gr) <- seqlengths(g)["chr4"]
-crp <- colorRampPalette(c("dodgerblue2", "firebrick2"))
-rplt <- plotRanges(gr, params=p, y=2, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
+# make n features in clumps of ~lambda
+gr <- makeClusterRanges(chrom, rng_big, n=150, lambda=5, g)
+
+# define some plotting parameters 
+pal <- colorRampPalette(c("dodgerblue2", "firebrick2"))
+p <- pgParams(
+  chrom=chrom, chromstart=rng[1], chromend=rng[2], width=5.5,
+  x=.25, fill=colorby("score", palette=pal),
+  order="random", baseline=TRUE, height=1
+)
 textp <- pgParams(x=.1, rot=90, just="left")
 
+# plot the original GRanges
+plotRanges(gr, params=p, y=2)
 plotText("original", params=textp, y=3)
+
+# uniform shuffling
 shuf <- shuffle(gr, rng_big)
-splt <- plotRanges(shuf, params=p, y=1, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
+
+# plot shuffled ranges
+plotRanges(shuf, params=p, y=1)
 plotText("shuffled", params=textp, y=2)
 
+# segmented block bootstrapping
 library(nullranges)
 seg <- makeSegmentation(chrom, rng, g)
-boot <- bootRanges(gr, blockLength=1e5, R=1, seg=seg, proportionLength=FALSE)
-bplt <- plotRanges(boot, params=p, y=0, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
-plotText("boot", params=textp, y=1)
+boot <- bootRanges(gr, blockLength=1e5, R=1,
+                   seg=seg, proportionLength=FALSE)
 
-pageGuideHide()
+# plot bootstrapped ranges
+plotRanges(boot, params=p, y=0)
+plotText("boot", params=textp, y=1)

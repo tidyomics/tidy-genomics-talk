@@ -1,12 +1,12 @@
-plotSomeGenes <- function(chrom, rng) {
-  pageCreate(width=6, height=4)
-  p <- pgParams(chrom=chrom, chromstart=rng[1], chromend=rng[2], width=5.5, x=.25)
+plotSomeGenes <- function(chrom, rng, showGuides) {
+  pageCreate(width=6, height=4, showGuides=showGuides)
+  p <- pgParams(chrom=chrom, chromstart=rng[1], chromend=rng[2], width=5.5)
   cols <- c("dodgerblue","navy")
-  gplt <- plotGenes(params=p, y=3, height=.75, fill=cols, fontcolor=cols)
+  gplt <- plotGenes(params=p, x=.25, y=3, height=.75, fill=cols, fontcolor=cols)
   annoGenomeLabel(plot=gplt, x=.25, y=3.75, scale="Mb")
 }
 
-makeClusterRanges <- function(chrom, rng, n, lambda) {
+makeClusterRanges <- function(chrom, rng, n, lambda, g) {
   niter <- n/lambda
   out <- lapply(seq_len(niter), function(i) {
     nranges <- max(rpois(1, lambda), 1)
@@ -19,6 +19,7 @@ makeClusterRanges <- function(chrom, rng, n, lambda) {
   gr <- do.call(rbind, out) %>%
     as_granges() %>%
     sort()
+  seqlengths(gr) <- seqlengths(g)["chr4"]
   gr
 }
 
