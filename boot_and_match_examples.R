@@ -5,11 +5,17 @@ p <- pgParams(chrom=chrom, chromstart=rng[1], chromend=rng[2], width=5.5, x=.25)
 gplt <- plotGenes(params=p, y=3, height=.75)
 annoGenomeLabel(plot=gplt, x=.25, y=3.75, scale="Mb")
 gr <- makeClusterRanges(chrom, rng_big, 150, 5)
+seqlengths(gr) <- seqlengths(g)["chr4"]
 crp <- colorRampPalette(c("dodgerblue2", "firebrick2"))
 rplt <- plotRanges(gr, params=p, y=2, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
 plotText("original", x=.25, y=3, rot=90, just="left")
-splt <- plotRanges(shuffle(gr, rng_big), params=p, y=1, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
+shuf <- shuffle(gr, rng_big)
+splt <- plotRanges(shuf, params=p, y=1, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
 plotText("shuffled", x=.25, y=2, rot=90, just="left")
+boot <- bootRanges(gr, blockLength=1e5, R=1, seg=seg, proportionLength=FALSE)
+bplt <- plotRanges(boot, params=p, y=0, height=1, fill=colorby("score", palette=crp), order="random", baseline=TRUE)
+plotText("boot", x=.25, y=1, rot=90, just="left")
+
 pageGuideHide()
 
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
@@ -18,6 +24,14 @@ txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
 g <- genes(txdb)
 g <- g %>% mutate(symbol = mapIds(org.Hs.eg.db, gene_id, "SYMBOL", "ENTREZID"))
 suppressPackageStartupMessages(library(plyranges))
+
+library(nullranges)
+seg <- data.frame(seqnames=chrom, start=c(1,rng[1]+1,rng[2]+1),
+                  end=c(rng[1],rng[2],seqlengths(g)[[chrom]]),
+                  state=c(1,2,1)) %>%
+  as_granges()
+
+# filtering the genes:
 r <- data.frame(seqnames=chrom,start=rng[1]+1,end=rng[2]) %>% as_granges()
 g %>%
   filter_by_overlaps(r) %>%
