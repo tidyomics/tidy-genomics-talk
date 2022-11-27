@@ -6,7 +6,7 @@ plotSomeGenes <- function(chrom, rng, showGuides) {
   annoGenomeLabel(plot=gplt, x=.25, y=3.75, scale="Mb")
 }
 
-makeClusterRanges <- function(chrom, rng, n, lambda, g) {
+makeClusterRanges <- function(chrom, rng, n, lambda, seqlens) {
   niter <- n/lambda
   out <- lapply(seq_len(niter), function(i) {
     nranges <- max(rpois(1, lambda), 1)
@@ -20,7 +20,7 @@ makeClusterRanges <- function(chrom, rng, n, lambda, g) {
     as_granges() %>%
     sort() %>%
     mutate(id = seq_along(.))
-  seqlengths(gr) <- seqlengths(g)["chr4"]
+  seqlengths(gr) <- seqlens
   gr
 }
 
@@ -32,10 +32,31 @@ shuffle <- function(gr, rng, width=1e4) {
 }
 
 
-makeSegmentation <- function(chrom, rng, g) {
+makeSegmentation <- function(chrom, rng, seqlens) {
   seg <- data.frame(seqnames=chrom, start=c(1,rng[1]+1,rng[2]+1),
-                    end=c(rng[1],rng[2],seqlengths(g)[[chrom]]),
+                    end=c(rng[1],rng[2],seqlens),
                     state=c(1,2,1)) %>%
     as_granges()
 }
 
+makeFocalFeatures <- function(g, chrom, rng) {
+  tss <- g %>%
+    anchor_5p() %>%
+    mutate(width = 1e4) %>%
+    select(-c(gene_id, symbol))
+  bind_ranges(replicate(3, tss)) %>%
+    shift(round(runif(length(.), -1e4, 1e4))) %>%
+    mutate(
+      score = factor(sample(3:5, length(.), replace=TRUE, prob=1:3), levels=1:5)
+    )
+}
+
+makePool <- function(n, chrom, rng, seqlens) {
+  gr <- data.frame(
+    seqnames=chrom,
+    start=round(runif(n, rng[1], rng[2])), width=1e4,
+    score = factor(sample(1:5, n, replace=TRUE),levels=1:5)) %>%
+    as_granges()
+  seqlengths(gr) <- seqlens
+  gr
+}
