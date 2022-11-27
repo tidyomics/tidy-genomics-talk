@@ -48,7 +48,8 @@ makeFocalFeatures <- function(g, chrom, rng) {
     shift(round(runif(length(.), -1e4, 1e4))) %>%
     mutate(
       score = factor(sample(3:5, length(.), replace=TRUE, prob=1:3), levels=1:5)
-    )
+    ) %>%
+    unname()
 }
 
 makePool <- function(n, chrom, rng, seqlens) {

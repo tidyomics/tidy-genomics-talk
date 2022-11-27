@@ -163,12 +163,11 @@ g %>% join_overlap_inner(all) %>%
 plotSomeGenes(chrom, rng, showGuides=FALSE)
 
 # make some features with particular distribution
-# 1) near gene TSS
-# 2) tend to have large 'score' values
+# 1) near gene TSS, 2) tend to have large 'score' values
 focal <- makeFocalFeatures(g, chrom, rng)
 
 # 5 color palette for 'score'
-pal <- function(n)
+pal <- colorRampPalette(c("blue","green","yellow","red"))
 
 # new plot parameters
 p <- pgParams(
@@ -192,20 +191,20 @@ plotText("pool", params=textp, y=2)
 # add another feature: distance to nearest TSS
 tss <- g %>% anchor_5p() %>% mutate(width=1)
 
-# another option here would be bind_ranges, then split below by some 'id'
-focal <- focal %>%
+both <- bind_ranges(focal = focal, pool = pool, .id="type") %>%
   add_nearest_distance(tss) %>%
-  mutate(distance = log10(distance + 1))
+  mutate(log10dist = log10(distance + 1000))
 
-pool <- pool %>%
-  add_nearest_distance(tss) %>%
-  mutate(distance = log10(distance + 1))
+hist(both$log10dist)
 
 # three different methods for matching
-m <- matchRanges(focal, pool, covar=~score + distance, method="stratified")
+m <- matchRanges(both[both$type == "focal"],
+                 both[both$type == "pool"],
+                 covar=~score + log10dist,
+                 method="stratified")
 
 plotCovariate(m, covar="score")
-plotCovariate(m, covar="distance")
+plotCovariate(m, covar="log10dist")
 
 # plot the matched set (need to replot the others)
 plotSomeGenes(chrom, rng, showGuides=FALSE)
