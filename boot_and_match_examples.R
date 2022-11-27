@@ -173,7 +173,7 @@ pal <- colorRampPalette(c("blue","green","yellow","red"))
 p <- pgParams(
   chrom=chrom, chromstart=rng[1], chromend=rng[2],
   width=5.5, height=1, x=.25,
-  fill=colorby("score", palette=pal),
+  fill=colorby("score", palette=pal, range=c(1,5)),
   order="random", baseline=TRUE, 
 )
 
@@ -201,7 +201,7 @@ hist(both$log10dist)
 m <- matchRanges(both[both$type == "focal"],
                  both[both$type == "pool"],
                  covar=~score + log10dist,
-                 method="stratified")
+                 method="nearest", replace=TRUE)
 
 plotCovariate(m, covar="score")
 plotCovariate(m, covar="log10dist")

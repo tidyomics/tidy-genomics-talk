@@ -46,17 +46,13 @@ makeFocalFeatures <- function(g, chrom, rng) {
     select(-c(gene_id, symbol))
   bind_ranges(replicate(3, tss)) %>%
     shift(round(runif(length(.), -1e4, 1e4))) %>%
-    mutate(
-      score = factor(sample(3:5, length(.), replace=TRUE, prob=1:3), levels=1:5)
-    ) %>%
+    mutate(score = runif(length(.), 3, 5)) %>%
     unname()
 }
 
 makePool <- function(n, chrom, rng, seqlens) {
-  gr <- data.frame(
-    seqnames=chrom,
-    start=round(runif(n, rng[1], rng[2])), width=1e4,
-    score = factor(sample(1:5, n, replace=TRUE),levels=1:5)) %>%
+  gr <- data.frame(seqnames=chrom, start=round(runif(n, rng[1], rng[2])),
+                   width=1e4, score = runif(n, 1, 5)) %>%
     as_granges()
   seqlengths(gr) <- seqlens
   gr
