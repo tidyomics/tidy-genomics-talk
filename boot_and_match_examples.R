@@ -56,7 +56,7 @@ plotText("shuffled", params=textp, y=2)
 
 # segmented block bootstrapping
 library(nullranges)
-seg <- makeSegmentation(chrom, rng, g)
+seg <- makeSegmentation(chrom, rng_big, g)
 boot <- bootRanges(gr, blockLength=1e5, R=1,
                    seg=seg, proportionLength=FALSE)
 
@@ -68,6 +68,8 @@ plotText("boot", params=textp, y=1)
 ## bootstrapping statistics ##
 ##############################
 
+# first just counts
+
 g %>%
   mutate(n_overlaps = count_overlaps(., gr))
 
@@ -75,9 +77,13 @@ g %>% join_overlap_left(gr) %>%
   group_by(symbol) %>%
   summarize(n_overlaps = sum(!is.na(id)))
 
+# working with metadata
+
 g %>% join_overlap_left(gr) %>%
   group_by(symbol) %>%
   summarize(ave_score = mean(score))
+
+# simple violin plot
 
 library(tibble)
 library(ggplot2)
@@ -90,6 +96,8 @@ g %>% join_overlap_left(gr) %>%
   ggplot(aes(type, ave_score)) +
   geom_violin() +
   geom_jitter()
+
+# adding more draws from the distribution
 
 niter <- 50
 sim_list <- replicate(niter, makeClusterRanges(chrom, rng_big, n=300, lambda=5, g))
@@ -105,11 +113,15 @@ g %>% join_overlap_left(sim_long) %>%
   geom_violin() +
   geom_jitter()
 
+# shuffling and bootstrapping multiple times
+
 shuf_list <- replicate(niter, shuffle(gr, rng))
 shuf_long <- bind_ranges(shuf_list, .id="iter")
 
 boot_long <- bootRanges(gr, blockLength=1e5, R=niter,
                    seg=seg, proportionLength=FALSE)
+
+# bind together
 
 lvls <- c("sim","shuffle","boot")
 all <- bind_ranges(sim=sim_long, shuffle=shuf_long,
@@ -117,6 +129,9 @@ all <- bind_ranges(sim=sim_long, shuffle=shuf_long,
   mutate(type = factor(type, levels=lvls))
 
 head(table(all$iter, all$type))
+
+# final plot of distributions:
+# multiple draws, shuffling one instance, bootstrapping one instances
 
 g %>% join_overlap_left(all) %>%
   filter(!is.na(id)) %>%
