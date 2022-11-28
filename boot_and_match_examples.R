@@ -76,6 +76,13 @@ boot <- bootRanges(gr, blockLength=1e5, R=1,
 plotRanges(boot, params=p, y=0)
 plotText("boot", params=textp, y=1)
 
+# for genome-wide analysis, consider excluding gaps, repeats, etc.
+# see https://dozmorovlab.github.io/excluderanges for details
+
+#library(AnnotationHub)
+#ah <- AnnotationHub()
+#query(ah, "excluderanges")
+
 ###########################
 ## bootstrapping example ##
 ###########################
