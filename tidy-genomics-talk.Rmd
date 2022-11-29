@@ -1,7 +1,11 @@
 ---
 title: "Tidy Analysis of Genomic Data"
-author: "Michael Love"
-date: "2022-07-13"
+author: |
+  | Michael Love
+  | Dept of Genetics &
+  | Dept of Biostatistics
+  | UNC-Chapel Hill
+date: "December 2022"
 output: beamer_presentation
 urlcolor: blue
 ---
@@ -55,6 +59,7 @@ In the R package *dplyr*:
 * `slice()` picks cases based on their position.
 * `summarize()` reduces multiple values down to a single summary.
 * `arrange()` changes the ordering of the rows.
+* `group_by()` perform any operation by group.
 
 <https://dplyr.tidyverse.org/>
 \normalsize
@@ -79,7 +84,7 @@ dat %>%
   summarize(mu_est = mean(value))
 ```
 
-# Piping into plots
+# Piping directly into plots!
 
 ```{r fig.dim=c(5,2)}
 dat %>%
@@ -93,26 +98,27 @@ dat %>%
 
 ![](narrowpeak.png)
 
-# Practical considerations
+# Tidy advantages
 
 \Large
 
-* Many comp students are already familiar with dplyr/ggplot2, so helps with onboarding
-* Piping can help to avoid hard-to-read variable names, e.g.:
+* Many already familiar with dplyr and ggplot2
+* Avoid intermedite variables, e.g.:
   ```{r eval=FALSE}
   dat3 <- dat2[dat2$signal > x]
   ```
-* It's not necessarily *less code*, but aims for readable code
+* Aim is for *readable* code
 
 \normalsize
 
-# Why consider "tidy analysis" paradigm for genomics?
+# Why "tidy analysis" for genomics?
 
 \Large
 
-* Encourages exploratory analysis, vs. "all-in-one" functions for performing summarization or enrichment analysis
-* Encourages efficiency: fewer calls to C code
+* Encourages exploration
+* Encourages efficiency: fewer calls out of R
 * Generalizes from simple to complex cases
+* Developer side: modularity is easier to maintain
 
 \normalsize
 
@@ -131,6 +137,14 @@ library(plyranges)
 pks <- read_narrowpeaks("ENCFF231UNV.bed.gz")
 ```
 
+Alternatively:
+
+```{r eval=FALSE}
+pks <- read.csv("file.csv") %>% 
+  rename(seqnames = chr) %>%
+  as_granges()
+```
+
 ```{r echo=FALSE}
 #library(GenomeInfoDb)
 #si <- Seqinfo(genome="mm10")
@@ -143,85 +157,51 @@ seqinfo(pks) <- si
 
 # Bringing range data into R
 
-\tiny
+\footnotesize
 ```{r}
-pks
+pks %>% slice(1:3) %>% select(signalValue)
 ```
 \normalsize
 
-# Example operations with plyranges
+# Example plyranges
 
-```{r eval=FALSE}
-pks %>%
-  filter(seqnames %in% paste0("chr",1:3),
-         qValue > 2) %>%
-  mutate(width_bin = cut(width, 
-                         breaks=c(0,300,500,5000), 
-                         include.lowest=TRUE)) %>%
-  group_by(width_bin, seqnames) %>%
-  summarize(freq = n()) %>%
-  as_tibble() %>%
-  ggplot(aes(width_bin, freq)) + 
-  geom_col() + 
-  facet_wrap(~seqnames)
-```
-
-# Example operations with plyranges
-
-```{r echo=FALSE, fig.dim=c(7,2.5)}
-pks %>%
-  filter(seqnames %in% paste0("chr",1:3),
-         qValue > 2) %>%
-  mutate(width_bin = cut(width, 
-                         breaks=c(0,300,500,5000), 
-                         include.lowest=TRUE)) %>%
-  group_by(width_bin, seqnames) %>%
-  summarize(freq = n()) %>%
-  as_tibble() %>%
-  ggplot(aes(width_bin, freq)) + 
-  geom_col() + 
-  facet_wrap(~seqnames)
-```
-
-# Making use of range information
-
-* Suppose a query set of ranges, `q` (here three ranges).
-* We can ask about overlaps between `pks` and `q`
-* Optional specification of `maxgap` and/or `minoverlap`. 
+* For a set of query ranges, `tiles` (here three 1 Mb ranges)
+* Find overlaps between `pks` and `tiles`
+* Optional specification of `maxgap` and/or `minoverlap`
 
 ```{r echo=FALSE}
-q <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6), 
-             query_id=1:3)
-seqinfo(q) <- si
+tiles <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6), 
+                 tile_id=1:3)
+seqinfo(tiles) <- si
 ```
 
 ```{r}
-q
+tiles
 ```
 
 # Overlaps with `join`
 
-* Join-by-overlaps is a flexible paradigm for performing overlaps.
-* "Left" and "inner" joins differ by whether 0-matches are included
+* Join-by-overlaps is a flexible paradigm for performing overlaps
+* "Left" vs. "inner" joins: 0-matches are / aren't included
 
 \footnotesize
 ```{r}
 pks %>%
   select(score) %>% # just `score` column
-  join_overlap_inner(q) %>% # overlap -> add cols from q
-  group_by(query_id) %>% # group matches by `q`
+  join_overlap_inner(tiles) %>% # overlap -> add cols from tiles
+  group_by(tile_id) %>% # group matches by which tile
   slice(which.max(score)) # take the top scoring peak
 ```
 \normalsize
 
 # Counting overlaps
 
-* Use `.` to specify self within a command
-* Add number of overlaps to each entry in `q`:
+* Use "`.`" to specify self within a command
+* Add number of overlaps to each entry in `tiles`:
 
 \footnotesize
 ```{r}
-q %>% mutate(n_overlaps = count_overlaps(., pks))
+tiles %>% mutate(n_overlaps = count_overlaps(., pks))
 ```
 \normalsize
 
@@ -232,7 +212,7 @@ q %>% mutate(n_overlaps = count_overlaps(., pks))
     - For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu)
     - For regulatory variants falling in ATAC peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
     - For looped and unlooped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
-    - For DHS in a region of interest with particular genomic characteristics, compare overlap with functional annotation within and in comparison to matched regions from elsewhere in genome (Lexi Bounds, Pat Sullivan, *et al.*)
+    - For DHS in a region of interest with particular genomic characteristics, compare overlap with functional annotation within and in comparison to matched regions from elsewhere in genome (Euphy Wu, Lexi Bounds, Pat Sullivan)
 
 # Going further: extracting info from fitted models
 
@@ -242,10 +222,10 @@ q %>% mutate(n_overlaps = count_overlaps(., pks))
 ```{r eval=FALSE}
 library(broom)
 pks %>%
-  join_overlap_inner(q) %>%
+  join_overlap_inner(tiles) %>%
   as_tibble() %>%
-  select(query_id, score, qValue) %>%
-  nest(data = -query_id) %>%
+  select(tile_id, score, qValue) %>%
+  nest(data = -tile_id) %>%
   mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
          fitted = map(fit, ~.x$fitted)) %>%
   unnest(c(data, fitted))
@@ -256,10 +236,10 @@ pks %>%
 ```{r echo=FALSE}
 library(broom)
 pks %>%
-  join_overlap_inner(q) %>%
+  join_overlap_inner(tiles) %>%
   as_tibble() %>%
-  select(query_id, score, qValue) %>%
-  nest(data = -query_id) %>%
+  select(tile_id, score, qValue) %>%
+  nest(data = -tile_id) %>%
   mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
          fitted = map(fit, ~.x$fitted)) %>%
   unnest(c(data, fitted))
@@ -270,10 +250,12 @@ pks %>%
 * TSS: `anchor_5p() %>% mutate(width=1)`
 * Overlaps can specify `*_directed` or `*_within`
 * Flatten/break up ranges: `reduce_ranges`, `disjoin_ranges`
-* Concatenating ranges: `bind_ranges`
+* Concatenating ranges: `bind_ranges` with `.id` argument
 * Overlaps are handled often with "joins": `join_overlap_*`, 
   `join_nearest`, `join_nearest_downstream`, etc.
-* Load *plyranges* last to avoid name masking
+* Also `add_neareast_distance`
+* Load *plyranges* last to avoid name masking with *AnnotationDbi*
+  and *dplyr*
 
 # More tutorials online
 
@@ -282,6 +264,7 @@ pks %>%
 * *nullranges* vignettes (on Bioc and GitHub), which provides block bootstrap and matching functionality that pairs easily with *plyranges*
 * Other examples, incl. bootstrap: "Tidy Ranges Tutorial"
 * BioC2022: Wancen Mu & Eric Davis *nullranges* workshop
+* See `#tidiness_in_bioc` and `#nullranges` Bioc Slack channels
 
 # Summary: tidy analysis for genomic data
 
@@ -293,12 +276,8 @@ knitr::include_graphics(c("dplyr.png","GenomicRanges.png"))
 knitr::include_graphics(c("plyranges.png","nullranges.png"))
 ```
 
-\large
-
-* Encourages exploratory analysis, vs. "all-in-one" functions
-* Encourages efficiency: fewer calls to C code
-* Generalizes from simple to complex cases
-
+\small
+*nullranges* development sponsored by CZI EOSS ![](czi.png){width=50px}
 \normalsize
 
 # Reading
@@ -306,11 +285,15 @@ knitr::include_graphics(c("plyranges.png","nullranges.png"))
 \small
 * Lee, S., Cook, D. & Lawrence, M. plyranges: a grammar of genomic data transformation. Genome Biology 20, 4 (2019). <https://doi.org/10.1186/s13059-018-1597-8>
 * Lee S, Lawrence M and Love MI. Fluent genomics with plyranges and tximeta. F1000Research 2020, 9:109 <https://doi.org/10.12688/f1000research.22259.1>
-* plyranges vignettes <https://sa-lee.github.io/plyranges>
-* Tidy Ranges Tutorial <https://nullranges.github.io/tidy-ranges-tutorial>
-* bootRanges, matchRanges, see: <https://nullranges.github.io/nullranges>
+* plyranges vignettes [sa-lee.github.io/plyranges](https://sa-lee.github.io/plyranges)
+* Tidy Ranges Tutorial 
+  [nullranges.github.io/tidy-ranges-tutorial](https://nullranges.github.io/tidy-ranges-tutorial)
+* *nullranges*: bootRanges, matchRanges
+  [nullranges.github.io/nullranges](https://nullranges.github.io/nullranges)
+* excluderanges [dozmorovlab.github.io/excluderanges](https://dozmorovlab.github.io/excluderanges/)
 
 Tidy analysis for matrix data:
 
 * Mangiola, S., Molania, R., Dong, R. et al. tidybulk: an R tidy framework for modular transcriptomic data analysis. Genome Biology 22, 42 (2021). <https://doi.org/10.1186/s13059-020-02233-7>
-* tidySummarizedExperiment, see: <https://stemangiola.github.io/tidySummarizedExperiment>
+* tidySE, tidySCE, tidyseurat
+  [stemangiola.github.io/tidytranscriptomics](https://stemangiola.github.io/tidytranscriptomics)
