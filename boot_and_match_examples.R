@@ -114,7 +114,7 @@ g %>% join_overlap_inner(gr) %>%
   as_tibble() %>%
   ggplot(aes(type, ave_score)) +
   geom_violin() +
-  geom_jitter()
+  geom_point()
 
 # adding more draws from the distribution for simulated features
 
@@ -135,7 +135,7 @@ g %>% join_overlap_inner(sim_long) %>%
 
 # shuffling and bootstrapping multiple times
 
-shuf_list <- replicate(niter, shuffle(gr, rng))
+shuf_list <- replicate(niter, shuffle(gr, rng_big))
 shuf_long <- bind_ranges(shuf_list, .id="iter")
 
 boot_long <- bootRanges(gr, blockLength=1e5, R=niter,
