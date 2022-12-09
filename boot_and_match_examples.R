@@ -100,7 +100,7 @@ g %>% join_overlap_left(gr) %>%
 
 g %>% join_overlap_left(gr) %>%
   group_by(symbol) %>%
-  summarize(ave_score = mean(score))
+  summarize(sum_score = sum(score))
 
 # simple violin plot
 
@@ -110,9 +110,9 @@ library(ggplot2)
 g %>% join_overlap_inner(gr) %>%
   mutate(type = "original") %>%
   group_by(symbol, type) %>%
-  summarize(ave_score = mean(score)) %>%
+  summarize(sum_score = sum(score)) %>%
   as_tibble() %>%
-  ggplot(aes(type, ave_score)) +
+  ggplot(aes(type, sum_score)) +
   geom_violin() +
   geom_point()
 
@@ -127,9 +127,9 @@ sim_long <- bind_ranges(sim_list, .id="iter")
 g %>% join_overlap_inner(sim_long) %>%
   mutate(type = "original") %>%
   group_by(symbol, iter, type) %>%
-  summarize(ave_score = mean(score)) %>%
+  summarize(sum_score = sum(score)) %>%
   as_tibble() %>%
-  ggplot(aes(type, ave_score)) +
+  ggplot(aes(type, sum_score)) +
   geom_violin() +
   geom_jitter()
 
@@ -156,9 +156,9 @@ head(table(all$iter, all$type))
 
 g %>% join_overlap_inner(all) %>%
   group_by(symbol, iter, type) %>%
-  summarize(ave_score = mean(score)) %>%
+  summarize(sum_score = sum(score)) %>%
   as_tibble() %>%
-  ggplot(aes(type, ave_score)) +
+  ggplot(aes(type, sum_score)) +
   geom_violin() +
   geom_jitter(width=.25, alpha=.15)
 
