@@ -124,7 +124,7 @@ dat %>%
 
 # Bringing range data into R
 
-ENCODE mouse embryonic fibroblast, H3k4me1:
+ENCODE mouse embryonic fibroblast, H3K4me1:
 
 \vspace{2em}
 
@@ -155,6 +155,15 @@ seqlevels(pks) <- seqlevels(si)
 seqinfo(pks) <- si
 ```
 
+# Another common paradigm, separating single column
+
+```{r eval=FALSE}
+pks <- read.delim("file.tsv") %>%
+  separate(location, ":|-", # e.g. chr1:123-456
+           into=c("seqnames","start","end")) %>%
+  as_granges()
+```
+
 # Bringing range data into R
 
 \footnotesize
@@ -163,7 +172,7 @@ pks %>% slice(1:3) %>% select(signalValue)
 ```
 \normalsize
 
-# Example plyranges
+# Example use of *plyranges*
 
 * For a set of query ranges, `tiles` (here three 1 Mb ranges)
 * Find overlaps between `pks` and `tiles`
@@ -257,16 +266,16 @@ pks %>%
 * Load *plyranges* last to avoid name masking with *AnnotationDbi*
   and *dplyr*
 
-# More tutorials online
+# More *plyranges*-based tutorials online
 
 * *plyranges* vignettes (on Bioc and GitHub)
 * Enrichment of peaks and genes: "Fluent Genomics" workflow
-* *nullranges* vignettes (on Bioc and GitHub), which provides block bootstrap and matching functionality that pairs easily with *plyranges*
+* *nullranges* vignettes (on Bioc and GitHub)
 * Other examples, incl. bootstrap: "Tidy Ranges Tutorial"
 * BioC2022: Wancen Mu & Eric Davis *nullranges* workshop
-* See `#tidiness_in_bioc` and `#nullranges` Bioc Slack channels
+* `#tidiness_in_bioc` and `#nullranges` Slack channels
 
-# Summary: tidy analysis for genomic data
+# Summary: tidy analysis for genomic range data
 
 ```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="25%"}
 knitr::include_graphics(c("dplyr.png","GenomicRanges.png"))
@@ -280,20 +289,28 @@ knitr::include_graphics(c("plyranges.png","nullranges.png"))
 *nullranges* development sponsored by CZI EOSS ![](czi.png){width=50px}
 \normalsize
 
+# See also: tidy analysis of transcriptomic data
+
+```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="60%"}
+knitr::include_graphics("tt_roadmap.png")
+```
+
+[Tidy Transcriptomics](https://stemangiola.github.io/tidytranscriptomics/post/tidy-transcriptomics-manifesto/)
+
 # Reading
 
 \small
-* Lee, S., Cook, D. & Lawrence, M. plyranges: a grammar of genomic data transformation. Genome Biology 20, 4 (2019). <https://doi.org/10.1186/s13059-018-1597-8>
-* Lee S, Lawrence M and Love MI. Fluent genomics with plyranges and tximeta. F1000Research 2020, 9:109 <https://doi.org/10.12688/f1000research.22259.1>
+* Lee, S, Cook, D, Lawrence, M. plyranges: a grammar of genomic data transformation. *Genome Biology* (2019) [10.1186/s13059-018-1597-8](https://doi.org/10.1186/s13059-018-1597-8)
+* Lee S, Lawrence M, Love MI. Fluent genomics with plyranges and tximeta. *F1000Research* (2020) [10.12688/f1000research.22259.1](https://doi.org/10.12688/f1000research.22259.1)
 * plyranges vignettes [sa-lee.github.io/plyranges](https://sa-lee.github.io/plyranges)
 * Tidy Ranges Tutorial 
   [nullranges.github.io/tidy-ranges-tutorial](https://nullranges.github.io/tidy-ranges-tutorial)
-* *nullranges*: bootRanges, matchRanges
+* nullranges: bootRanges, matchRanges
   [nullranges.github.io/nullranges](https://nullranges.github.io/nullranges)
 * excluderanges [dozmorovlab.github.io/excluderanges](https://dozmorovlab.github.io/excluderanges/)
 
 Tidy analysis for matrix data:
 
-* Mangiola, S., Molania, R., Dong, R. et al. tidybulk: an R tidy framework for modular transcriptomic data analysis. Genome Biology 22, 42 (2021). <https://doi.org/10.1186/s13059-020-02233-7>
+* Mangiola, S, Molania, R, Dong, R et al. tidybulk: an R tidy framework for modular transcriptomic data analysis. *Genome Biology* (2021) [10.1186/s13059-020-02233-7](https://doi.org/10.1186/s13059-020-02233-7)
 * tidySE, tidySCE, tidyseurat
   [stemangiola.github.io/tidytranscriptomics](https://stemangiola.github.io/tidytranscriptomics)
