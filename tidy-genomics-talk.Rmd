@@ -175,8 +175,8 @@ pks %>% slice(1:3) %>% select(signalValue)
 # Example use of *plyranges*
 
 * For a set of query ranges, `tiles` (here three 1 Mb ranges)
-* Find overlaps between `pks` and `tiles`
-* Optional specification of `maxgap` and/or `minoverlap`
+* Find all overlaps between `pks` and `tiles`
+* Perform computation on the overlaps
 
 ```{r echo=FALSE}
 tiles <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6), 
@@ -184,14 +184,24 @@ tiles <- GRanges("chr1", IRanges(51:53 * 1e6 + 1, width=1e6),
 seqinfo(tiles) <- si
 ```
 
+\footnotesize
 ```{r}
 tiles
 ```
+\normalsize
 
-# Overlaps with `join`
+# Consider overlaps as a `join`
 
-* Join-by-overlaps is a flexible paradigm for performing overlaps
-* "Left" vs. "inner" joins: 0-matches are / aren't included
+```{r echo=FALSE, fig.align="center", out.width="50%"}
+# https://www.flickr.com/photos/hellothomas/5073821890
+knitr::include_graphics("woodjoin.png")
+```
+
+* We are joining two sources of information by match
+* How would you then pick top scoring peak (`pks`) per `tile`?
+* What verbs would be involved?
+
+# Consider overlaps as a `join`
 
 \footnotesize
 ```{r}
@@ -207,6 +217,9 @@ pks %>%
 
 * Use "`.`" to specify self within a command
 * Add number of overlaps to each entry in `tiles`:
+* Can specify `maxgap` and/or `minoverlap`
+
+\vspace{1em}
 
 \footnotesize
 ```{r}
@@ -216,12 +229,10 @@ tiles %>% mutate(n_overlaps = count_overlaps(., pks))
 
 # More complex cases
 
-* The most common cases are computing summaries, overlaps
-* More complex computations are possible, e.g.:
-    - For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu)
-    - For regulatory variants falling in ATAC peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
-    - For looped and unlooped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
-    - For DHS in a region of interest with particular genomic characteristics, compare overlap with functional annotation within and in comparison to matched regions from elsewhere in genome (Euphy Wu, Lexi Bounds, Pat Sullivan)
+* For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu)
+* For regulatory variants falling in open chromatin peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
+* For looped and un-looped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
+* For DHS in a region of interest with particular genomic characteristics, compare overlap with functional annotation within and in comparison to matched regions from elsewhere in genome (Euphy Wu, Lexi Bounds, Pat Sullivan)
 
 # Going further: extracting info from fitted models
 
@@ -291,7 +302,7 @@ knitr::include_graphics(c("plyranges.png","nullranges.png"))
 
 # See also: tidy analysis of transcriptomic data
 
-```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="60%"}
+```{r echo=FALSE, fig.align="center", out.width="60%"}
 knitr::include_graphics("tt_roadmap.png")
 ```
 
