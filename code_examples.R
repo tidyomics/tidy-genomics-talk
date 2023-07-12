@@ -45,3 +45,46 @@ all.equal(res1, res2)
 ## example 2 ##
 ###############
 
+# distance from one set of features (5p) to nearest other set (center)
+# group by the type of features and plot histogram
+
+x <- data.frame(seqnames=1,
+                start=round(runif(100,0,1e4)),
+                width=round(runif(100,5,15)),
+                xID=paste0("x",1:100),
+                group=paste0("g",rep(1:2,each=50))) %>%
+  as_granges()
+
+y <- data.frame(seqnames=1,
+                start=round(runif(100,0,1e4)),
+                width=round(runif(100,5,15)),
+                yID=paste0("y",1:100)) %>%
+  as_granges()
+
+library(tibble)
+library(ggplot2)
+
+x %>%
+  anchor_5p %>%
+  mutate(width=1) %>%
+  add_nearest_distance(y %>% anchor_center %>% mutate(width=1)) %>%
+  as_tibble() %>%
+  ggplot(aes(distance, group=group, fill=group)) +
+  geom_histogram(position="dodge")
+
+x_5p <- resize(x, width=1)
+y_mid <- y - ifelse(width(y) %% 2 == 0, width(y)/2-.5, floor(width(y)/2))
+hits <- distanceToNearest(x_5p, y_mid)
+x$distance[queryHits(hits)] <- mcols(hits)$distance
+mcols(x)[,c("group","distance")] %>%
+  as_tibble() %>%
+  ggplot(aes(distance, group=group, fill=group)) +
+  geom_histogram(position="dodge")
+
+
+###############
+## example 3 ##
+###############
+
+# find disjoin regions within groups of features
+
