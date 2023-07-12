@@ -50,27 +50,35 @@ all.equal(res1, res2)
 
 x <- data.frame(seqnames=1,
                 start=round(runif(100,0,1e4)),
-                width=round(runif(100,5,15)),
-                xID=paste0("x",1:100),
-                group=paste0("g",rep(1:2,each=50))) %>%
-  as_granges()
+                width=round(runif(100,5,15))) %>%
+  as_granges() %>%
+  sort()
+x <- x %>%
+  mutate(xID = paste0("x",1:100),
+         group = paste0("g",rep(1:2,each=50)))
 
 y <- data.frame(seqnames=1,
                 start=round(runif(100,0,1e4)),
-                width=round(runif(100,5,15)),
-                yID=paste0("y",1:100)) %>%
-  as_granges()
+                width=round(runif(100,5,15))) %>%
+  as_granges() %>%
+  sort()
+y <- y %>%
+  mutate(yID=paste0("y",1:100))
 
 library(tibble)
 library(ggplot2)
 
+# tidy
+
 x %>%
-  anchor_5p %>%
+  anchor_5p() %>%
   mutate(width=1) %>%
   add_nearest_distance(y %>% anchor_center %>% mutate(width=1)) %>%
   as_tibble() %>%
   ggplot(aes(distance, group=group, fill=group)) +
   geom_histogram(position="dodge")
+
+# base bioc
 
 x_5p <- resize(x, width=1)
 y_mid <- y - ifelse(width(y) %% 2 == 0, width(y)/2-.5, floor(width(y)/2))
@@ -86,5 +94,27 @@ mcols(x)[,c("group","distance")] %>%
 ## example 3 ##
 ###############
 
-# find disjoin regions within groups of features
+# find disjoint regions within groups of features, filter to the overlapping pieces
 
+# tidy
+
+x %>%
+  join_overlap_inner(range(x) %>%
+                     tile_ranges(width=1000) %>%
+                     mutate(tile=seq_along(.))) %>%
+  group_by(tile) %>%
+  disjoin_ranges(total = n()) %>%
+  filter(total > 1)
+
+# base bioc
+
+tiles <- tile(range(x), width=1000)[[1]]
+tiles$tile <- seq_along(tiles)
+hits <- findOverlaps(x, tiles)
+res <- lapply(1:length(tiles), function(t) {
+  x_sub <- x[queryHits(hits)[subjectHits(hits) == t]]
+  d <- disjoin(x_sub)
+  cov <- as(coverage(x_sub), "GRanges")
+  d[d %over% cov[cov$score > 1]]
+})
+do.call(c, res)
