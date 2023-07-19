@@ -84,9 +84,8 @@ x_5p <- resize(x, width=1)
 y_mid <- y - ifelse(width(y) %% 2 == 0, width(y)/2-.5, floor(width(y)/2))
 hits <- distanceToNearest(x_5p, y_mid)
 x$distance[queryHits(hits)] <- mcols(hits)$distance
-mcols(x)[,c("group","distance")] %>%
-  as_tibble() %>%
-  ggplot(aes(distance, group=group, fill=group)) +
+df <- as.data.frame(mcols(x)[,c("group","distance")])
+ggplot(df, aes(distance, group=group, fill=group)) +
   geom_histogram(position="dodge")
 
 
