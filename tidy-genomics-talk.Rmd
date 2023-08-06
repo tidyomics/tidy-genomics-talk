@@ -315,7 +315,7 @@ knitr::include_graphics("tt_roadmap.png")
 * Lee S, Lawrence M, Love MI. Fluent genomics with plyranges and tximeta. *F1000Research* (2020) [10.12688/f1000research.22259.1](https://doi.org/10.12688/f1000research.22259.1)
 * plyranges vignettes [sa-lee.github.io/plyranges](https://sa-lee.github.io/plyranges)
 * Tidy Ranges Tutorial 
-  [tidybiology.github.io/tidy-ranges-tutorial](https://tidybiology.github.io/tidy-ranges-tutorial)
+  [tidyomics.github.io/tidy-ranges-tutorial](https://tidyomics.github.io/tidy-ranges-tutorial)
 * nullranges: bootRanges, matchRanges
   [nullranges.github.io/nullranges](https://nullranges.github.io/nullranges)
 * excluderanges [dozmorovlab.github.io/excluderanges](https://dozmorovlab.github.io/excluderanges/)
