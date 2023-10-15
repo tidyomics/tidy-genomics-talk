@@ -110,17 +110,17 @@ dat %>%
 
 # Great packages in Bioconductor to work with ranges
 
-* LOLA
-* COCOA
-* ChipEnrichR annotater?
-* ...
+* [LOLA](https://code.databio.org/LOLA/) - facilitates testing overlap
+* [COCOA](https://code.databio.org/COCOA/) - explore sample variation along genome
+* [regioneR]( https://bioconductor.org/packages/regioneR/) - permutation testing
+* [ChIPpeakAnno](https://bioconductor.org/packages/ChIPpeakAnno/) - facilitates downstream analysis
 
 Going to talk now about data exploration
 
 # Exploring data with tidy syntax
 
-\Large
-Helps avoid intermediate variables, and tucks away control code.
+\large
+Helps avoid intermediate variables, and tucks away control code
 
 \vspace{1em}
 
@@ -134,6 +134,12 @@ dat %>%
 ```
 
 \normalsize
+
+```{r echo=FALSE, fig.align="center", out.width="25%"}
+knitr::include_graphics("plyranges.png")
+```
+
+This is *plyranges* from Stuart Lee, Michael Lawrence and Di Cook
 
 # Bringing range data into R
 
@@ -265,10 +271,9 @@ tiles %>%
 
 # More complex cases
 
-* For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu) --> similar to COCOA
+* For peaks near genes, compute correlation of cell-type-specific accessibility and expression (Wancen Mu) → similar to COCOA
 * For regulatory variants falling in open chromatin peaks, visualize their distribution stratified by SNP and peak categories (Jon Rosen)
 * For looped and un-looped enhancer-promoter pairs, compare average ATAC and RNA time series, while controlling for genomic distance and contact frequency (Eric Davis)
-* For regions of interest, comparing conservation while matching on various characteristics (GC, LDSC, gene density) (Pat Sullivan)
 
 # Nest $\rightarrow$ map $\rightarrow$ unnest
 
@@ -303,9 +308,8 @@ pks %>%
 
 * *plyranges* vignettes (on Bioc and GitHub)
 * Enrichment of peaks and genes: "Fluent Genomics" workflow
-* *nullranges* vignettes (on Bioc and GitHub)
+* Null regions: *nullranges* vignettes (on Bioc and GitHub)
 * Other examples, incl. bootstrap: "Tidy Ranges Tutorial"
-* BioC2022: Wancen Mu & Eric Davis *nullranges* workshop
 * `#tidiness_in_bioc` and `#nullranges` Slack channels
 
 # Summary: tidy analysis for genomic range data
@@ -324,9 +328,11 @@ knitr::include_graphics(c("plyranges.png","nullranges.png"))
 
 # Tidy analysis of matrix data
 
-```{r echo=FALSE, fig.align="center", out.width="60%"}
+```{r echo=FALSE, fig.align="center", out.width="50%"}
 knitr::include_graphics("tt_roadmap.png")
 ```
+
+tidy-* from Stefano Mangiola (WEHI) *et al.*
 
 # Example use of tidySingleCellExperiment
 
@@ -341,7 +347,7 @@ library(scater) # for next chunk
 library(ggplot2) # for next chunk
 ```
 
-```{r fig.dim=c(4,3), out.width="50%"}
+```{r fig.dim=c(4,3), fig.align="center", out.width="50%"}
 sce %>%
   scater::runPCA(ncomp=2, subset_row=var_genes) %>%
   ggplot(aes(PC1, PC2, color=groups)) + 
@@ -359,7 +365,7 @@ colLabels(sce) <- sce %>%
     as.factor()
 ```
 
-```{r fig.dim=c(4,3), out.width="50%", message=FALSE}
+```{r fig.dim=c(4,3), fig.align="center", out.width="50%", message=FALSE}
 sce %>%
   join_features(c("CCL5","CST3")) %>%
   ggplot(aes(label, .abundance_logcounts)) + 
@@ -368,10 +374,18 @@ sce %>%
   facet_wrap(~.feature)
 ```
 
+# Altogether, "tidyomics"
+
+<https://github.com/tidyomics>
+
+```{r echo=FALSE, fig.show="hold", fig.align="center", out.width="30%"}
+knitr::include_graphics(c("tidyomics1.png", "tidyomics2.png"))
+```
+
 # Reading
 
 \small
-* tidyomics paper
+* Hutchison, WJ, Keyes, TJ, *et al.* The tidyomics ecosystem: Enhancing omic data analyses *bioRxiv* (2023) [10.1101/2023.09.10.557072](https://doi.org/10.1101/2023.09.10.557072)
 * Lee, S, Cook, D, Lawrence, M. plyranges: a grammar of genomic data transformation. *Genome Biology* (2019) [10.1186/s13059-018-1597-8](https://doi.org/10.1186/s13059-018-1597-8)
 * Lee S, Lawrence M, Love MI. Fluent genomics with plyranges and tximeta. *F1000Research* (2020) [10.12688/f1000research.22259.1](https://doi.org/10.12688/f1000research.22259.1)
 

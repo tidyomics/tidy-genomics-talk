@@ -1,3 +1,4 @@
 *.pdf
 *.key
 tidy-genomics-talk_cache/
+.DS_store
