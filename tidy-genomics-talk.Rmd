@@ -47,7 +47,7 @@ command | command | command > output.txt
 
 \vspace{2em}
 
-In R we use `'%>%'` or `|>` instead of `'|'` to chain operations.
+In R we use `%>%` or `|>` instead of `|` to chain operations.
 
 # Verb-based operations
 
@@ -97,12 +97,13 @@ dat %>%
 
 # Summary I
 
-* Recommend teaching both base R and "tidy"
+* I teach both base R and "tidy"
+* Both are wrappers, choose based on 1) efficiency 2) flow
 * I use the former for writing software, latter for scripting
-* Students know dplyr/ggplot2 once they get to genomic data
+* Students know dplyr/ggplot2 already
 * Next:
   - tidy for genomic ranges
-  - tidy for matrix data (RNA-seq)
+  - tidy for matrix data (scRNA-seq)
 
 # Genomic range data is already tidy
 
@@ -110,7 +111,7 @@ dat %>%
 
 # Great packages in Bioconductor to work with ranges
 
-* [LOLA](https://code.databio.org/LOLA/) - facilitates testing overlap
+* [LOLA](https://code.databio.org/LOLA/) - facilitates testing overlaps, fast, useful databases
 * [COCOA](https://code.databio.org/COCOA/) - explore sample variation along genome
 * [regioneR]( https://bioconductor.org/packages/regioneR/) - permutation testing
 * [ChIPpeakAnno](https://bioconductor.org/packages/ChIPpeakAnno/) - facilitates downstream analysis
@@ -373,6 +374,16 @@ sce %>%
   geom_sina() +
   facet_wrap(~.feature)
 ```
+
+# More complex cases
+
+* Join extra cell-level data
+* Perform nested analyses per cell population
+* Create a custom expression signature from subset of genes
+* Find genes near ChIP-seq peaks, convert to pseudobulk, plot
+
+See [our Bioc2023 workshop](https://tidyomics.github.io/tidyomicsWorkshopBioc2023/articles/tidyGenomicsTranscriptomics.html)
+and [tidyseurat](https://stemangiola.github.io/tidyseurat/) / [tidySCE](https://stemangiola.github.io/tidySingleCellExperiment/)
 
 # Altogether, "tidyomics"
 
