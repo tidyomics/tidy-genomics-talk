@@ -113,6 +113,7 @@ dat %>%
 
 * [LOLA](https://code.databio.org/LOLA/) - facilitates testing overlaps, fast, useful databases
 * [COCOA](https://code.databio.org/COCOA/) - explore sample variation along genome
+* [GenomicDistributions](http://code.databio.org/GenomicDistributions/) - annotate, visualize distribution with respect to other features (genes)
 * [regioneR]( https://bioconductor.org/packages/regioneR/) - permutation testing
 * [ChIPpeakAnno](https://bioconductor.org/packages/ChIPpeakAnno/) - facilitates downstream analysis
 
