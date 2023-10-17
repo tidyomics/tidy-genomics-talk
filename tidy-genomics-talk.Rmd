@@ -280,29 +280,33 @@ tiles %>%
 
 ```{r eval=FALSE}
 library(purrr)
+library(broom)
 pks %>%
   join_overlap_inner(tiles) %>%
   as_tibble() %>%
-  select(tile_id, score, qValue) %>%
+  select(tile_id, signalValue, qValue) %>%
   nest(data = -tile_id) %>%
-  mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
-         fitted = map(fit, ~.x$fitted)) %>%
-  unnest(c(data, fitted))
-# see also broom::glance and broom::augment
+  mutate(fit = map(data, 
+                   ~lm(signalValue ~ qValue, data=.)
+                   ),
+         stats = map(fit, glance)) %>%
+  unnest(stats)
 ```
 
 # Nest $\rightarrow$ map $\rightarrow$ unnest
 
 ```{r echo=FALSE}
 library(purrr)
+library(broom)
 pks %>%
   join_overlap_inner(tiles) %>%
   as_tibble() %>%
-  select(tile_id, score, qValue) %>%
+  select(tile_id, signalValue, qValue) %>%
   nest(data = -tile_id) %>%
-  mutate(fit = map(data, ~lm(score ~ qValue, data=.)),
-         fitted = map(fit, ~.x$fitted)) %>%
-  unnest(c(data, fitted))
+  mutate(fit = map(data, ~lm(signalValue ~ qValue, data=.)),
+         stats = map(fit, glance)) %>%
+  unnest(stats) %>%
+  select(tile_id, data, fit, r.squared)
 ```
 
 # More *plyranges*-based tutorials online
